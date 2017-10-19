@@ -1,31 +1,28 @@
-import React from 'react'
-import mobx from 'mobx'
-import mobxReact from 'mobx-react'
-import { render } from 'react-dom'
+import {observable, autorun} from 'mobx';
 
-var appState = mobx.observable({
-    timer: 0
+var todoStore = observable({
+    /* 可观察状态 */
+    todos: [],
+
+    /* 一个衍生值 */
+    get completedCount() {
+        return this.todos.filter(todo => todo.completed).length;
+    }
 });
 
-appState.resetTimer = function() {
-    appState.timer = 0;
+/* 一个对状态进行观察的函数 */
+autorun(function() {
+    console.log("Completed %d of %d items",
+        todoStore.completedCount,
+        todoStore.todos.length
+    );
+});
+
+/* 一些改变状态的行为 */
+todoStore.todos[0] = {
+    title: "Take a walk",
+    completed: false
 };
+// -> 同步打印 'Completed 0 of 1 items'
 
-setInterval(function() {
-    appState.timer += 1;
-}, 1000);
-        
-var TimerView = mobxReact.observer(
-React.createClass({
-     render: function() {
-        return (<button onClick={this.onReset}>
-        	Seconds passed: {this.props.appState.timer}
-            </button>);
-     },
-     
-     onReset: function() {
-     	this.props.appState.resetTimer();
-     }
-}));
-
-render(<TimerView appState={appState} />, document.getElementById('root'));
+todoStore.todos[0].completed = true;
